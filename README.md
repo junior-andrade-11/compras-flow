@@ -27,7 +27,7 @@ Substitui o controle manual realizado em planilhas a partir de cards do Trello, 
 
 ## 🚀 Demonstração
 
-**Link:** `[ADICIONE AQUI O LINK DO GITHUB PAGES]`
+**Link:** 👉 [Acessar aplicação](https://junior-andrade-11.github.io/compras-flow/)
 
 ## 💡 Evolução
 
