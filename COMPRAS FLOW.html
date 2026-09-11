@@ -1,0 +1,1487 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ComprasFlow</title>
+<style>
+  :root{
+    --bg:#0f1117;
+    --bg-panel:#161923;
+    --bg-card:#1e222d;
+    --bg-card-hover:#242938;
+    --border:#2a2f3d;
+    --text:#e7e9f0;
+    --text-dim:#9aa1b4;
+    --text-dimmer:#6b7284;
+    --accent:#5b8def;
+    --accent-dim:#3a5a9c;
+    --success:#3ecf8e;
+    --warning:#f5a623;
+    --danger:#ef5a5f;
+    --urgent:#ff4d5e;
+    --purple:#a78bfa;
+    --teal:#2dd4bf;
+    --radius:10px;
+    --shadow:0 4px 14px rgba(0,0,0,0.35);
+  }
+  html[data-theme="light"]{
+    --bg:#f4f5f8;
+    --bg-panel:#ffffff;
+    --bg-card:#ffffff;
+    --bg-card-hover:#f0f2f7;
+    --border:#dde1ea;
+    --text:#1c2030;
+    --text-dim:#5b6274;
+    --text-dimmer:#8a90a3;
+    --accent:#3b6fd8;
+    --accent-dim:#a9c2f2;
+    --success:#11996a;
+    --warning:#c07600;
+    --danger:#d13b45;
+    --urgent:#d6202f;
+    --shadow:0 2px 10px rgba(30,40,70,0.08);
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;}
+  html,body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+    height:100%;
+  }
+  #app{display:flex;flex-direction:column;height:100vh;}
+
+  /* HEADER */
+  header{
+    background:var(--bg-panel);
+    border-bottom:1px solid var(--border);
+    padding:12px 18px;
+    display:flex;
+    align-items:center;
+    gap:10px;
+    flex-wrap:wrap;
+  }
+  header button.ghost{padding:7px 10px;font-size:12.5px;}
+  header .stat-pill{padding:5px 10px;}
+  header h1{
+    font-size:18px;
+    margin:0;
+    font-weight:700;
+    white-space:nowrap;
+    display:flex;align-items:center;gap:8px;
+  }
+  header h1 span.dot{width:9px;height:9px;border-radius:50%;background:var(--accent);display:inline-block;}
+  .tabs{display:flex;gap:4px;background:var(--bg-card);padding:4px;border-radius:8px;border:1px solid var(--border);}
+  .tab-btn{
+    background:transparent;border:none;color:var(--text-dim);
+    padding:7px 14px;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600;
+    transition:.15s;
+  }
+  .tab-btn.active{background:var(--accent);color:#0b0d12;}
+  .tab-btn:not(.active):hover{color:var(--text);}
+  .spacer{flex:1;}
+  .stats-bar{display:flex;gap:8px;flex-wrap:wrap;}
+  .stat-pill{
+    background:var(--bg-card);border:1px solid var(--border);
+    padding:5px 12px;border-radius:20px;font-size:12px;color:var(--text-dim);
+    display:flex;gap:6px;align-items:center;white-space:nowrap;
+  }
+  .stat-pill b{color:var(--text);font-size:13px;}
+
+  button.primary{
+    background:var(--accent);color:#0b0d12;border:none;font-weight:700;
+    padding:9px 16px;border-radius:8px;cursor:pointer;font-size:13px;
+    transition:.15s;
+  }
+  button.primary:hover{filter:brightness(1.1);}
+  button.ghost{
+    background:transparent;border:1px solid var(--border);color:var(--text-dim);
+    padding:8px 14px;border-radius:8px;cursor:pointer;font-size:13px;
+  }
+  button.ghost:hover{border-color:var(--accent);color:var(--text);}
+
+  /* TOOLBAR */
+  .toolbar{
+    padding:12px 20px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;
+    background:var(--bg);
+    border-bottom:1px solid var(--border);
+  }
+  input[type=text],input[type=date],input[type=number],select,textarea{
+    background:var(--bg-card);border:1px solid var(--border);color:var(--text);
+    padding:8px 10px;border-radius:7px;font-size:13px;font-family:inherit;
+  }
+  input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent);}
+  #searchInput{width:220px;}
+
+  /* BOTAO RECOLHER */
+  .collapse-btn{
+    background:transparent;border:1px solid var(--border);color:var(--text-dim);
+    width:22px;height:22px;border-radius:6px;cursor:pointer;font-size:10px;
+    display:flex;align-items:center;justify-content:center;flex-shrink:0;padding:0;
+    transition:.15s;
+  }
+  .collapse-btn:hover{border-color:var(--accent);color:var(--accent);}
+
+  /* BADGES */
+  .badge{font-size:10px;padding:2px 7px;border-radius:5px;font-weight:700;letter-spacing:.2px;}
+  .badge.tipo-entrega{background:rgba(167,139,250,.15);color:var(--purple);}
+  .badge.tipo-retirada{background:rgba(45,212,191,.15);color:var(--teal);}
+  .badge.prio-baixa{background:color-mix(in srgb, var(--prio-baixa, #9aa1b4) 18%, transparent);color:var(--prio-baixa, #9aa1b4);}
+  .badge.prio-media{background:color-mix(in srgb, var(--prio-media, #5b8def) 18%, transparent);color:var(--prio-media, #5b8def);}
+  .badge.prio-alta{background:color-mix(in srgb, var(--prio-alta, #f5a623) 18%, transparent);color:var(--prio-alta, #f5a623);}
+  .badge.prio-urgente{background:color-mix(in srgb, var(--prio-urgente, #ff4d5e) 20%, transparent);color:var(--prio-urgente, #ff4d5e);}
+
+  /* PENDENCIAS */
+  #pendView{flex:1;overflow-y:auto;padding:20px;display:none;}
+  .pend-form{
+    display:flex;gap:8px;flex-wrap:wrap;background:var(--bg-panel);
+    border:1px solid var(--border);padding:14px;border-radius:var(--radius);margin-bottom:18px;
+  }
+  .pend-form input,.pend-form select{flex:1;min-width:140px;}
+  #pendList{display:flex;flex-direction:column;gap:8px;max-width:900px;}
+  .pend-item{
+    background:var(--bg-panel);border:1px solid var(--border);border-radius:8px;
+    padding:12px 14px;display:flex;align-items:flex-start;gap:12px;
+  }
+  .pend-item.done{opacity:.45;}
+  .pend-item.done .pend-text{text-decoration:line-through;}
+  .pend-check{
+    width:20px;height:20px;border-radius:5px;border:2px solid var(--border);
+    cursor:pointer;flex-shrink:0;margin-top:2px;display:flex;align-items:center;justify-content:center;
+    background:var(--bg-card);
+  }
+  .pend-item.done .pend-check{background:var(--success);border-color:var(--success);color:#0b0d12;font-weight:900;}
+  .pend-body{flex:1;}
+  .pend-text{font-size:13.5px;font-weight:600;margin-bottom:4px;}
+  .pend-meta{font-size:11.5px;color:var(--text-dim);display:flex;gap:12px;flex-wrap:wrap;}
+  .pend-del{background:transparent;border:none;color:var(--text-dimmer);cursor:pointer;font-size:16px;padding:2px 6px;}
+  .pend-del:hover{color:var(--danger);}
+  .empty-msg{color:var(--text-dimmer);font-size:13px;padding:20px;text-align:center;}
+
+  /* GRUPOS DA TABELA */
+  .group-block{margin-bottom:4px;}
+  .group-title{
+    display:flex;align-items:center;gap:9px;font-size:14px;font-weight:800;
+    margin-bottom:8px;padding-bottom:8px;border-bottom:2px solid var(--border);
+  }
+  .group-block.collapsed .group-title{margin-bottom:0;}
+  .group-title .grp-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+  .group-title .grp-label{cursor:pointer;user-select:none;}
+  .group-title .grp-label:hover{color:var(--accent);}
+  .group-title .grp-count{
+    background:var(--bg-card);color:var(--text-dim);font-size:11px;
+    padding:2px 9px;border-radius:20px;font-weight:700;
+  }
+  .group-title .grp-hint{font-size:11.5px;color:var(--text-dimmer);font-weight:600;}
+
+  table.data-table{width:100%;border-collapse:separate;border-spacing:0 5px;font-size:13px;}
+  table.data-table th{
+    text-align:left;padding:2px 10px 6px;color:var(--text-dim);font-size:11.5px;
+    font-weight:700;letter-spacing:.2px;
+  }
+  table.data-table td{
+    padding:10px;vertical-align:middle;background:var(--bg-panel);
+    border-top:1px solid var(--border);border-bottom:1px solid var(--border);
+  }
+  table.data-table td:first-child{border-left:1px solid var(--border);border-radius:8px 0 0 8px;}
+  table.data-table td:last-child{border-right:1px solid var(--border);border-radius:0 8px 8px 0;}
+
+  /* linha inteira tingida pela cor da prioridade */
+  table.data-table tr.row-prio td{
+    background:color-mix(in srgb, var(--row-color) 13%, var(--bg-panel));
+    border-top-color:color-mix(in srgb, var(--row-color) 32%, var(--border));
+    border-bottom-color:color-mix(in srgb, var(--row-color) 32%, var(--border));
+  }
+  table.data-table tr.row-prio td:first-child{
+    border-left-color:color-mix(in srgb, var(--row-color) 32%, var(--border));
+    box-shadow:inset 4px 0 0 var(--row-color);
+  }
+  table.data-table tr.row-prio td:last-child{border-right-color:color-mix(in srgb, var(--row-color) 32%, var(--border));}
+  table.data-table tr.row-prio:hover td{background:color-mix(in srgb, var(--row-color) 23%, var(--bg-panel));}
+
+  /* linha concluida: verde por inteiro */
+  table.data-table tr.row-done td{
+    background:color-mix(in srgb, var(--success) 16%, var(--bg-panel));
+    border-top-color:color-mix(in srgb, var(--success) 38%, var(--border));
+    border-bottom-color:color-mix(in srgb, var(--success) 38%, var(--border));
+    color:color-mix(in srgb, var(--success) 25%, var(--text));
+  }
+  table.data-table tr.row-done td:first-child{
+    border-left-color:color-mix(in srgb, var(--success) 38%, var(--border));
+    box-shadow:inset 4px 0 0 var(--success);
+  }
+  table.data-table tr.row-done td:last-child{border-right-color:color-mix(in srgb, var(--success) 38%, var(--border));}
+  table.data-table tr.row-done:hover td{background:color-mix(in srgb, var(--success) 26%, var(--bg-panel));}
+  table.data-table tr.row-done .done-check{color:var(--success);font-weight:900;margin-right:6px;}
+
+  .icon-btn{
+    background:transparent;border:1px solid var(--border);color:var(--text-dim);
+    width:28px;height:28px;border-radius:6px;cursor:pointer;font-size:13px;
+    display:inline-flex;align-items:center;justify-content:center;
+  }
+  .icon-btn:hover{border-color:var(--accent);color:var(--accent);}
+
+  /* CALENDÁRIO */
+  .cal-toolbar{display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap;}
+  .cal-toolbar h2{margin:0;font-size:17px;font-weight:800;min-width:170px;text-align:center;text-transform:capitalize;}
+  .cal-summary{display:flex;gap:8px;flex-wrap:wrap;}
+  .cal-legend{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:10px;font-size:11.5px;color:var(--text-dim);}
+  .cal-legend span{display:flex;align-items:center;gap:6px;}
+  .cal-legend i{width:9px;height:9px;border-radius:3px;display:inline-block;}
+
+  .cal-wrap{border:1px solid var(--border);border-radius:12px;overflow:hidden;background:var(--bg-panel);}
+  .cal-weekdays{display:grid;grid-template-columns:repeat(7,1fr);background:var(--bg-card);}
+  .cal-weekdays div{
+    text-align:center;font-size:11.5px;color:var(--text-dim);font-weight:700;
+    padding:9px 4px;border-right:1px solid var(--border);
+  }
+  .cal-weekdays div:last-child{border-right:none;}
+  .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);}
+  .cal-cell{
+    min-height:116px;padding:6px 6px 8px;display:flex;flex-direction:column;gap:3px;
+    border-top:1px solid var(--border);border-right:1px solid var(--border);
+    transition:background .12s;
+  }
+  .cal-cell:nth-child(7n){border-right:none;}
+  .cal-cell.weekend{background:color-mix(in srgb, var(--bg) 65%, transparent);}
+  .cal-cell.out{background:color-mix(in srgb, var(--bg) 92%, transparent);}
+  .cal-cell.out .cal-daynum{opacity:.4;}
+  .cal-cell.today{background:color-mix(in srgb, var(--accent) 9%, transparent);}
+  .cal-head{display:flex;align-items:center;justify-content:space-between;min-height:22px;}
+  .cal-daynum{
+    font-size:12px;font-weight:800;color:var(--text-dim);
+    width:22px;height:22px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .cal-cell.today .cal-daynum{background:var(--accent);color:#0b0d12;}
+  .cal-add{
+    opacity:0;background:transparent;border:none;color:var(--text-dimmer);
+    cursor:pointer;font-size:15px;line-height:1;padding:0 3px;transition:.12s;
+  }
+  .cal-cell:hover .cal-add{opacity:1;}
+  .cal-add:hover{color:var(--accent);}
+  .cal-chip{
+    font-size:10.5px;padding:3px 6px;border-radius:5px;cursor:pointer;
+    background:var(--bg-card);border-left:3px solid var(--chip-color,var(--accent));
+    color:var(--text);font-weight:600;
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap;transition:.1s;
+  }
+  .cal-chip:hover{background:var(--bg-card-hover);}
+  .cal-chip.done{opacity:.5;text-decoration:line-through;}
+  .cal-more{font-size:10px;color:var(--text-dimmer);padding:1px 4px;cursor:pointer;font-weight:700;}
+  .cal-more:hover{color:var(--accent);}
+
+  .day-item{
+    display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;
+    background:var(--bg-card);border:1px solid var(--border);cursor:pointer;
+    border-left:3px solid var(--chip-color,var(--accent));
+  }
+  .day-item:hover{background:var(--bg-card-hover);}
+  .day-item .di-title{font-size:13px;font-weight:700;flex:1;}
+  .day-item .di-sit{font-size:11px;font-weight:700;white-space:nowrap;}
+
+  /* MODAL */
+  .modal-overlay{
+    display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);
+    align-items:center;justify-content:center;z-index:100;padding:20px;
+  }
+  .modal-overlay.open{display:flex;}
+  .modal{
+    background:var(--bg-panel);border:1px solid var(--border);border-radius:var(--radius);
+    width:100%;max-width:480px;max-height:90vh;overflow-y:auto;box-shadow:var(--shadow);
+  }
+  .modal-header{
+    padding:16px 20px;border-bottom:1px solid var(--border);
+    display:flex;justify-content:space-between;align-items:center;
+  }
+  .modal-header h2{margin:0;font-size:16px;}
+  .modal-close{background:none;border:none;color:var(--text-dim);font-size:20px;cursor:pointer;}
+  .modal-body{padding:18px 20px;display:flex;flex-direction:column;gap:12px;}
+  .field label{display:block;font-size:12px;color:var(--text-dim);margin-bottom:5px;font-weight:600;}
+  .field input,.field select,.field textarea{width:100%;}
+  .field textarea{resize:vertical;min-height:60px;}
+  .field-row{display:flex;gap:10px;}
+  .field-row .field{flex:1;}
+  .modal-footer{
+    padding:14px 20px;border-top:1px solid var(--border);
+    display:flex;justify-content:space-between;gap:10px;
+  }
+  .swatches{display:flex;gap:7px;}
+  .swatch{width:24px;height:24px;border-radius:50%;cursor:pointer;border:2px solid transparent;}
+  .swatch.selected{border-color:var(--text);}
+
+  #toast{
+    position:fixed;bottom:20px;right:20px;background:var(--bg-card);
+    border:1px solid var(--border);color:var(--text);padding:10px 16px;border-radius:8px;
+    font-size:13px;box-shadow:var(--shadow);opacity:0;transform:translateY(10px);
+    transition:.25s;pointer-events:none;z-index:200;
+  }
+  #toast.show{opacity:1;transform:translateY(0);}
+
+  ::-webkit-scrollbar{width:8px;height:8px;}
+  ::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px;}
+  ::-webkit-scrollbar-track{background:transparent;}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <header>
+    <h1><span class="dot"></span> ComprasFlow</h1>
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="table">Tabela</button>
+      <button class="tab-btn" data-tab="calendar">Calendário</button>
+      <button class="tab-btn" data-tab="pend">Pendências</button>
+    </div>
+    <div class="spacer"></div>
+    <div class="stats-bar" id="statsBar"></div>
+    <button class="ghost" id="themeToggleBtn">🌙 Tema</button>
+    <button class="ghost" id="prioColorsBtn">🎨 Cores</button>
+    <button class="ghost" id="trelloSyncBtn" title="Buscar cartões novos no Trello">🔄 Sincronizar</button>
+    <button class="ghost" id="trelloConfigBtn">⚙️ Trello</button>
+    <button class="ghost" id="exportBtn">Exportar</button>
+    <button class="ghost" id="importBtn">Importar</button>
+    <input type="file" id="importFile" accept=".json" style="display:none;">
+  </header>
+
+  <div class="toolbar" id="boardToolbar">
+    <input type="text" id="searchInput" placeholder="Buscar material, fornecedor, solicitante...">
+    <select id="filterTipo">
+      <option value="">Todos os tipos</option>
+      <option value="entrega">Entrega</option>
+      <option value="retirada">Retirada</option>
+    </select>
+    <select id="filterPrio">
+      <option value="">Todas prioridades</option>
+      <option value="baixa">Baixa</option>
+      <option value="media">Média</option>
+      <option value="alta">Alta</option>
+      <option value="urgente">Urgente</option>
+    </select>
+    <select id="sortBy" title="Ordenar a tabela">
+      <option value="prazo_asc">Prazo: mais próximo primeiro</option>
+      <option value="prazo_desc">Prazo: mais distante primeiro</option>
+      <option value="prio">Prioridade: urgente primeiro</option>
+      <option value="titulo">Material: A a Z</option>
+      <option value="criacao">Cadastro: mais recentes</option>
+    </select>
+    <div class="spacer"></div>
+    <button class="primary" id="newCardBtn">+ Novo Cartão</button>
+  </div>
+
+  <div id="tableView" style="display:flex;flex:1;overflow:auto;padding:16px 20px;flex-direction:column;gap:24px;">
+    <div id="groupPendentes"></div>
+    <div id="groupConcluidos"></div>
+  </div>
+
+  <div id="calendarView" style="display:none;flex:1;overflow:auto;padding:20px;flex-direction:column;">
+    <div class="cal-toolbar">
+      <button class="ghost" id="calPrevBtn">‹</button>
+      <h2 id="calLabel"></h2>
+      <button class="ghost" id="calNextBtn">›</button>
+      <button class="ghost" id="calTodayBtn">Hoje</button>
+      <div class="spacer"></div>
+      <div class="cal-summary" id="calSummary"></div>
+    </div>
+    <div class="cal-legend">
+      <span><i style="background:var(--danger)"></i> Atrasado</span>
+      <span><i style="background:var(--warning)"></i> Vence hoje</span>
+      <span><i style="background:var(--success)"></i> No prazo</span>
+      <span><i style="background:var(--text-dimmer)"></i> Concluído</span>
+    </div>
+    <div class="cal-wrap">
+      <div class="cal-weekdays">
+        <div>Dom</div><div>Seg</div><div>Ter</div><div>Qua</div><div>Qui</div><div>Sex</div><div>Sáb</div>
+      </div>
+      <div id="calGrid" class="cal-grid"></div>
+    </div>
+  </div>
+
+  <div id="pendView" style="display:none;">
+    <div class="pend-form">
+      <input type="text" id="pendText" placeholder="Descreva a pendência...">
+      <input type="text" id="pendResp" placeholder="Responsável">
+      <input type="date" id="pendDate">
+      <select id="pendPrio">
+        <option value="media">Prioridade média</option>
+        <option value="baixa">Prioridade baixa</option>
+        <option value="alta">Prioridade alta</option>
+        <option value="urgente">Urgente</option>
+      </select>
+      <button class="primary" id="addPendBtn">Adicionar</button>
+    </div>
+    <div id="pendList"></div>
+  </div>
+
+</div>
+
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="modalTitle">Novo Cartão</h2>
+      <button class="modal-close" id="modalClose">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="field">
+        <label>Material / Item</label>
+        <input type="text" id="fTitle" placeholder="Ex: Cabo de aço 10mm">
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Fornecedor</label>
+          <input type="text" id="fSupplier">
+        </div>
+        <div class="field">
+          <label>Solicitante</label>
+          <input type="text" id="fRequester">
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Quantidade</label>
+          <input type="text" id="fQty" placeholder="Ex: 50 metros">
+        </div>
+        <div class="field">
+          <label>Tipo</label>
+          <select id="fTipo">
+            <option value="entrega">Entrega</option>
+            <option value="retirada">Retirada</option>
+          </select>
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Prioridade</label>
+          <select id="fPrio">
+            <option value="baixa">Baixa</option>
+            <option value="media" selected>Média</option>
+            <option value="alta">Alta</option>
+            <option value="urgente">Urgente</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Data prevista</label>
+          <input type="date" id="fDate">
+        </div>
+      </div>
+      <div class="field" style="display:flex;align-items:center;gap:8px;flex-direction:row;">
+        <input type="checkbox" id="fConcluido" style="width:16px;height:16px;">
+        <label style="margin:0;">Já concluído</label>
+      </div>
+      <div class="field">
+        <label>Observações</label>
+        <textarea id="fNotes" placeholder="Detalhes, nº do cartão do Trello, contato do fornecedor..."></textarea>
+      </div>
+      <div class="field">
+        <label>Cor</label>
+        <div class="swatches" id="swatches"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="ghost" id="deleteCardBtn" style="color:var(--danger);border-color:var(--danger);">Excluir</button>
+      <button class="primary" id="saveCardBtn">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="trelloOverlay">
+  <div class="modal" style="max-width:560px;">
+    <div class="modal-header">
+      <h2>Integração com Trello</h2>
+      <button class="modal-close" id="trelloModalClose">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:12px 14px;font-size:12.5px;color:var(--text-dim);line-height:1.6;">
+        <b style="color:var(--text);">Como conseguir a chave e o token:</b><br>
+        1. Acesse <span style="color:var(--accent);">trello.com/power-ups/admin</span> (ou trello.com/app-key), copie sua <b>API Key</b>.<br>
+        2. Na mesma página, gere um <b>Token</b> (autorize acesso de leitura) e cole abaixo.<br>
+        3. Abra seu board no navegador — o <b>ID do board</b> é o trecho da URL depois de "/b/", ex: trello.com/b/<u>AbCd1234</u>/nome-do-board.
+      </div>
+      <div class="field">
+        <label>API Key</label>
+        <input type="text" id="trelloKey" placeholder="Sua chave de API do Trello">
+      </div>
+      <div class="field">
+        <label>Token</label>
+        <input type="text" id="trelloToken" placeholder="Seu token de acesso">
+      </div>
+      <div class="field">
+        <label>ID (ou URL) do Board</label>
+        <input type="text" id="trelloBoardId" placeholder="Ex: AbCd1234 ou o link completo do board">
+      </div>
+      <button class="ghost" id="trelloFetchListsBtn">Buscar listas do board</button>
+      <div id="trelloMapArea"></div>
+      <div id="trelloStatusMsg" style="font-size:12px;color:var(--text-dim);"></div>
+      <div style="border-top:1px solid var(--border);margin-top:8px;padding-top:12px;">
+        <button class="ghost" id="trelloCleanupBtn" style="color:var(--danger);border-color:var(--danger);">Remover cartões importados do Trello por engano</button>
+        <div style="font-size:11.5px;color:var(--text-dimmer);margin-top:6px;">Apaga do painel todos os cartões que vieram de uma sincronização do Trello (não mexe nos que você criou manualmente). Use se importou listas erradas e quer recomeçar do zero.</div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="ghost" id="trelloSaveBtn">Salvar configuração</button>
+      <button class="primary" id="trelloSyncNowBtn">Salvar e sincronizar agora</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="prioColorsOverlay">
+  <div class="modal" style="max-width:380px;">
+    <div class="modal-header">
+      <h2>Cores das prioridades</h2>
+      <button class="modal-close" id="prioColorsClose">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="field-row" style="align-items:center;">
+        <div class="field" style="flex:2;"><label style="margin:0;">Baixa</label></div>
+        <div class="field"><input type="color" id="colorBaixa" style="width:60px;height:32px;padding:2px;"></div>
+      </div>
+      <div class="field-row" style="align-items:center;">
+        <div class="field" style="flex:2;"><label style="margin:0;">Média</label></div>
+        <div class="field"><input type="color" id="colorMedia" style="width:60px;height:32px;padding:2px;"></div>
+      </div>
+      <div class="field-row" style="align-items:center;">
+        <div class="field" style="flex:2;"><label style="margin:0;">Alta</label></div>
+        <div class="field"><input type="color" id="colorAlta" style="width:60px;height:32px;padding:2px;"></div>
+      </div>
+      <div class="field-row" style="align-items:center;">
+        <div class="field" style="flex:2;"><label style="margin:0;">Urgente</label></div>
+        <div class="field"><input type="color" id="colorUrgente" style="width:60px;height:32px;padding:2px;"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="ghost" id="prioColorsResetBtn">Restaurar padrão</button>
+      <button class="primary" id="prioColorsSaveBtn">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="dayOverlay">
+  <div class="modal" style="max-width:440px;">
+    <div class="modal-header">
+      <h2 id="dayModalTitle">Itens do dia</h2>
+      <button class="modal-close" id="dayModalClose">&times;</button>
+    </div>
+    <div class="modal-body" id="dayModalBody"></div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+(function(){
+  "use strict";
+
+  const STORAGE_KEY = "painel_compras_data_v1";
+  const COLORS = ["#5b8def","#3ecf8e","#f5a623","#ef5a5f","#a78bfa","#2dd4bf","#9aa1b4"];
+
+  const COLUMNS = [
+    {id:"pendente",  label:"⏳ Pendente", color:"#5b8def"},
+    {id:"concluido", label:"✅ Concluído", color:"#3ecf8e"}
+  ];
+
+  let state = loadState();
+  // migração: qualquer status antigo do quadro kanban vira "pendente"
+  state.cards.forEach(c=>{
+    if(c.status!=="concluido") c.status = "pendente";
+  });
+  let editingId = null;
+  let currentTab = "table";
+
+  function loadState(){
+    try{
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if(raw) return JSON.parse(raw);
+    }catch(e){}
+    return {cards:[], pend:[]};
+  }
+  function saveState(){
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  }
+  function uid(){
+    return Date.now().toString(36)+Math.random().toString(36).slice(2,8);
+  }
+  function showToast(msg){
+    const t = document.getElementById("toast");
+    t.textContent = msg;
+    t.classList.add("show");
+    clearTimeout(t._timer);
+    t._timer = setTimeout(()=>t.classList.remove("show"), 1800);
+  }
+  function fmtDate(d){
+    if(!d) return "";
+    const parts = d.split("-");
+    if(parts.length!==3) return d;
+    return parts[2]+"/"+parts[1]+"/"+parts[0];
+  }
+  function isOverdue(d){
+    if(!d) return false;
+    const today = new Date(); today.setHours(0,0,0,0);
+    const due = new Date(d+"T00:00:00");
+    return due < today;
+  }
+  function daysDiff(d){
+    const today = new Date(); today.setHours(0,0,0,0);
+    const due = new Date(d+"T00:00:00");
+    return Math.round((due-today)/86400000);
+  }
+  function situacaoInfo(card){
+    if(card.status==="concluido") return {label:"Concluído", color:"var(--success)"};
+    if(!card.dueDate) return {label:"Sem prazo", color:"var(--text-dimmer)"};
+    const diff = daysDiff(card.dueDate);
+    if(diff<0) return {label:`Atrasado (${Math.abs(diff)}d)`, color:"var(--danger)"};
+    if(diff===0) return {label:"Vence hoje", color:"var(--warning)"};
+    return {label:`No prazo (${diff}d)`, color:"var(--success)"};
+  }
+
+  // ---------- TEMA ----------
+  if(!state.theme) state.theme = "dark";
+  function applyTheme(){
+    document.documentElement.setAttribute("data-theme", state.theme);
+    document.getElementById("themeToggleBtn").textContent = state.theme==="dark" ? "🌙 Tema" : "☀️ Tema";
+  }
+  document.getElementById("themeToggleBtn").addEventListener("click", ()=>{
+    state.theme = state.theme==="dark" ? "light" : "dark";
+    saveState();
+    applyTheme();
+  });
+  applyTheme();
+
+  // ---------- CORES DE PRIORIDADE ----------
+  const DEFAULT_PRIO_COLORS = {baixa:"#9aa1b4", media:"#5b8def", alta:"#f5a623", urgente:"#ff4d5e"};
+  if(!state.prioColors) state.prioColors = {...DEFAULT_PRIO_COLORS};
+  function applyPrioColors(){
+    const root = document.documentElement.style;
+    root.setProperty("--prio-baixa", state.prioColors.baixa);
+    root.setProperty("--prio-media", state.prioColors.media);
+    root.setProperty("--prio-alta", state.prioColors.alta);
+    root.setProperty("--prio-urgente", state.prioColors.urgente);
+  }
+  applyPrioColors();
+  const prioColorsOverlay = document.getElementById("prioColorsOverlay");
+  document.getElementById("prioColorsBtn").addEventListener("click", ()=>{
+    document.getElementById("colorBaixa").value = state.prioColors.baixa;
+    document.getElementById("colorMedia").value = state.prioColors.media;
+    document.getElementById("colorAlta").value = state.prioColors.alta;
+    document.getElementById("colorUrgente").value = state.prioColors.urgente;
+    prioColorsOverlay.classList.add("open");
+  });
+  document.getElementById("prioColorsClose").addEventListener("click", ()=>prioColorsOverlay.classList.remove("open"));
+  prioColorsOverlay.addEventListener("click", e=>{ if(e.target===prioColorsOverlay) prioColorsOverlay.classList.remove("open"); });
+  document.getElementById("prioColorsSaveBtn").addEventListener("click", ()=>{
+    state.prioColors = {
+      baixa: document.getElementById("colorBaixa").value,
+      media: document.getElementById("colorMedia").value,
+      alta: document.getElementById("colorAlta").value,
+      urgente: document.getElementById("colorUrgente").value
+    };
+    saveState();
+    applyPrioColors();
+    prioColorsOverlay.classList.remove("open");
+    renderAll();
+    showToast("Cores de prioridade atualizadas.");
+  });
+  document.getElementById("prioColorsResetBtn").addEventListener("click", ()=>{
+    state.prioColors = {...DEFAULT_PRIO_COLORS};
+    saveState();
+    applyPrioColors();
+    document.getElementById("colorBaixa").value = state.prioColors.baixa;
+    document.getElementById("colorMedia").value = state.prioColors.media;
+    document.getElementById("colorAlta").value = state.prioColors.alta;
+    document.getElementById("colorUrgente").value = state.prioColors.urgente;
+    renderAll();
+  });
+
+  // ---------- TABS ----------
+  document.querySelectorAll(".tab-btn").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      document.querySelectorAll(".tab-btn").forEach(b=>b.classList.remove("active"));
+      btn.classList.add("active");
+      currentTab = btn.dataset.tab;
+      document.getElementById("boardToolbar").style.display = (currentTab==="table"||currentTab==="calendar") ? "flex":"none";
+      document.getElementById("sortBy").style.display = currentTab==="table" ? "block":"none";
+      document.getElementById("tableView").style.display = currentTab==="table" ? "flex":"none";
+      document.getElementById("calendarView").style.display = currentTab==="calendar" ? "flex":"none";
+      document.getElementById("pendView").style.display = currentTab==="pend" ? "block":"none";
+      if(currentTab==="table") renderTable();
+      if(currentTab==="calendar") renderCalendar();
+    });
+  });
+
+  // ---------- SWATCHES ----------
+  let selectedColor = COLORS[0];
+  const swatchesEl = document.getElementById("swatches");
+  COLORS.forEach(c=>{
+    const s = document.createElement("div");
+    s.className = "swatch";
+    s.style.background = c;
+    s.addEventListener("click", ()=>{
+      selectedColor = c;
+      renderSwatches();
+    });
+    s._color = c;
+    swatchesEl.appendChild(s);
+  });
+  function renderSwatches(){
+    [...swatchesEl.children].forEach(s=>{
+      s.classList.toggle("selected", s._color===selectedColor);
+    });
+  }
+
+  // ---------- FILTROS ----------
+  function getFilteredCards(){
+    const q = document.getElementById("searchInput").value.trim().toLowerCase();
+    const tipo = document.getElementById("filterTipo").value;
+    const prio = document.getElementById("filterPrio").value;
+    return state.cards.filter(c=>{
+      if(tipo && c.tipo!==tipo) return false;
+      if(prio && c.prio!==prio) return false;
+      if(q){
+        const hay = (c.title+" "+c.supplier+" "+c.requester+" "+c.notes).toLowerCase();
+        if(!hay.includes(q)) return false;
+      }
+      return true;
+    });
+  }
+
+  function labelPrio(p){
+    return {baixa:"Baixa",media:"Média",alta:"Alta",urgente:"Urgente"}[p] || p;
+  }
+  function escapeHtml(s){
+    if(!s) return "";
+    return s.replace(/[&<>"']/g, m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
+  }
+
+  // ---------- STATS ----------
+  function renderStats(){
+    const total = state.cards.length;
+    const urgentes = state.cards.filter(c=>c.prio==="urgente" && c.status!=="concluido").length;
+    const atrasados = state.cards.filter(c=>isOverdue(c.dueDate) && c.status!=="concluido").length;
+    const pendAbertas = state.pend.filter(p=>!p.done).length;
+    const bar = document.getElementById("statsBar");
+    bar.innerHTML = `
+      <div class="stat-pill">Cartões: <b>${total}</b></div>
+      <div class="stat-pill" style="${urgentes?'color:var(--urgent)':''}">Urgentes: <b>${urgentes}</b></div>
+      <div class="stat-pill" style="${atrasados?'color:var(--danger)':''}">Atrasados: <b>${atrasados}</b></div>
+      <div class="stat-pill">Pendências: <b>${pendAbertas}</b></div>
+    `;
+  }
+
+  // ---------- MODAL ----------
+  const overlay = document.getElementById("modalOverlay");
+  function openModal(id, defaultStatus, defaultDate){
+    editingId = id;
+    const isNew = !id;
+    document.getElementById("modalTitle").textContent = isNew ? "Novo Cartão" : "Editar Cartão";
+    document.getElementById("deleteCardBtn").style.display = isNew ? "none" : "inline-block";
+
+    let card = isNew ? {
+      title:"",supplier:"",requester:"",qty:"",tipo:"entrega",prio:"media",
+      dueDate:defaultDate||"",status:defaultStatus||"pendente",notes:"",color:COLORS[0]
+    } : state.cards.find(c=>c.id===id);
+
+    document.getElementById("fTitle").value = card.title;
+    document.getElementById("fSupplier").value = card.supplier;
+    document.getElementById("fRequester").value = card.requester;
+    document.getElementById("fQty").value = card.qty;
+    document.getElementById("fTipo").value = card.tipo;
+    document.getElementById("fPrio").value = card.prio;
+    document.getElementById("fDate").value = card.dueDate;
+    document.getElementById("fConcluido").checked = card.status==="concluido";
+    document.getElementById("fNotes").value = card.notes;
+    selectedColor = card.color || COLORS[0];
+    renderSwatches();
+
+    overlay.classList.add("open");
+    document.getElementById("fTitle").focus();
+  }
+  function closeModal(){
+    overlay.classList.remove("open");
+    editingId = null;
+  }
+  document.getElementById("modalClose").addEventListener("click", closeModal);
+  overlay.addEventListener("click", e=>{ if(e.target===overlay) closeModal(); });
+
+  document.getElementById("saveCardBtn").addEventListener("click", ()=>{
+    const title = document.getElementById("fTitle").value.trim();
+    if(!title){ showToast("Informe o nome do material."); return; }
+    const data = {
+      title,
+      supplier: document.getElementById("fSupplier").value.trim(),
+      requester: document.getElementById("fRequester").value.trim(),
+      qty: document.getElementById("fQty").value.trim(),
+      tipo: document.getElementById("fTipo").value,
+      prio: document.getElementById("fPrio").value,
+      dueDate: document.getElementById("fDate").value,
+      status: document.getElementById("fConcluido").checked ? "concluido" : "pendente",
+      notes: document.getElementById("fNotes").value.trim(),
+      color: selectedColor
+    };
+    if(editingId){
+      const idx = state.cards.findIndex(c=>c.id===editingId);
+      state.cards[idx] = {...state.cards[idx], ...data};
+      showToast("Cartão atualizado.");
+    }else{
+      state.cards.push({id:uid(), ...data, createdAt:Date.now()});
+      showToast("Cartão criado.");
+    }
+    saveState();
+    closeModal();
+    renderAll();
+  });
+
+  document.getElementById("deleteCardBtn").addEventListener("click", ()=>{
+    if(!editingId) return;
+    if(!confirm("Excluir este cartão?")) return;
+    state.cards = state.cards.filter(c=>c.id!==editingId);
+    saveState();
+    closeModal();
+    renderAll();
+    showToast("Cartão excluído.");
+  });
+
+  document.getElementById("newCardBtn").addEventListener("click", ()=>openModal(null, "pendente"));
+
+  ["searchInput","filterTipo","filterPrio"].forEach(id=>{
+    document.getElementById(id).addEventListener("input", renderAll);
+    document.getElementById(id).addEventListener("change", renderAll);
+  });
+
+  if(!state.sortBy) state.sortBy = "prazo_asc";
+  const sortEl = document.getElementById("sortBy");
+  sortEl.value = state.sortBy;
+  sortEl.addEventListener("change", ()=>{
+    state.sortBy = sortEl.value;
+    saveState();
+    renderTable();
+  });
+
+  // ---------- PENDENCIAS ----------
+  const pendListEl = document.getElementById("pendList");
+  function renderPend(){
+    pendListEl.innerHTML = "";
+    if(state.pend.length===0){
+      pendListEl.innerHTML = `<div class="empty-msg">Nenhuma pendência registrada.</div>`;
+      return;
+    }
+    const sorted = [...state.pend].sort((a,b)=>{
+      if(a.done!==b.done) return a.done?1:-1;
+      return (a.date||"9999").localeCompare(b.date||"9999");
+    });
+    sorted.forEach(p=>{
+      const el = document.createElement("div");
+      el.className = "pend-item"+(p.done?" done":"");
+      el.innerHTML = `
+        <div class="pend-check">${p.done?"✓":""}</div>
+        <div class="pend-body">
+          <div class="pend-text">${escapeHtml(p.text)}</div>
+          <div class="pend-meta">
+            ${p.resp?`<span>👤 ${escapeHtml(p.resp)}</span>`:""}
+            ${p.date?`<span>📅 ${fmtDate(p.date)}</span>`:""}
+            <span class="badge prio-${p.prio}">${labelPrio(p.prio)}</span>
+          </div>
+        </div>
+        <button class="pend-del" title="Excluir">&times;</button>
+      `;
+      el.querySelector(".pend-check").addEventListener("click", ()=>{
+        p.done = !p.done;
+        saveState(); renderAll();
+      });
+      el.querySelector(".pend-del").addEventListener("click", ()=>{
+        if(!confirm("Excluir esta pendência?")) return;
+        state.pend = state.pend.filter(x=>x.id!==p.id);
+        saveState(); renderAll();
+      });
+      pendListEl.appendChild(el);
+    });
+  }
+
+  document.getElementById("addPendBtn").addEventListener("click", ()=>{
+    const text = document.getElementById("pendText").value.trim();
+    if(!text){ showToast("Descreva a pendência."); return; }
+    state.pend.push({
+      id: uid(),
+      text,
+      resp: document.getElementById("pendResp").value.trim(),
+      date: document.getElementById("pendDate").value,
+      prio: document.getElementById("pendPrio").value,
+      done:false
+    });
+    document.getElementById("pendText").value = "";
+    document.getElementById("pendResp").value = "";
+    document.getElementById("pendDate").value = "";
+    saveState();
+    renderAll();
+    showToast("Pendência adicionada.");
+  });
+
+  // ---------- EXPORT / IMPORT ----------
+  // ---------- TRELLO INTEGRATION ----------
+  if(!state.trello) state.trello = {key:"", token:"", boardId:"", listMap:{}, lastSync:null};
+  if(!Array.isArray(state.cards)) state.cards = [];
+
+  function extractBoardId(input){
+    input = (input||"").trim();
+    const m = input.match(/trello\.com\/b\/([A-Za-z0-9]+)/);
+    if(m) return m[1];
+    return input;
+  }
+
+  const trelloOverlay = document.getElementById("trelloOverlay");
+  function openTrelloModal(){
+    document.getElementById("trelloKey").value = state.trello.key || "";
+    document.getElementById("trelloToken").value = state.trello.token || "";
+    document.getElementById("trelloBoardId").value = state.trello.boardId || "";
+    document.getElementById("trelloMapArea").innerHTML = "";
+    document.getElementById("trelloStatusMsg").textContent = state.trello.lastSync
+      ? "Última sincronização: "+new Date(state.trello.lastSync).toLocaleString("pt-BR")
+      : "";
+    if(Object.keys(state.trello.listMap||{}).length){
+      renderListMapUI(state.trello.cachedLists || []);
+    }
+    trelloOverlay.classList.add("open");
+  }
+  function closeTrelloModal(){ trelloOverlay.classList.remove("open"); }
+  document.getElementById("trelloConfigBtn").addEventListener("click", openTrelloModal);
+  document.getElementById("trelloModalClose").addEventListener("click", closeTrelloModal);
+  trelloOverlay.addEventListener("click", e=>{ if(e.target===trelloOverlay) closeTrelloModal(); });
+
+  function readTrelloFields(){
+    return {
+      key: document.getElementById("trelloKey").value.trim(),
+      token: document.getElementById("trelloToken").value.trim(),
+      boardId: extractBoardId(document.getElementById("trelloBoardId").value)
+    };
+  }
+
+  function renderListMapUI(lists){
+    const area = document.getElementById("trelloMapArea");
+    if(!lists.length){ area.innerHTML = ""; return; }
+    area.innerHTML = `<div class="field"><label>Para qual coluna vai cada lista do Trello?</label></div>`;
+    lists.forEach(list=>{
+      const row = document.createElement("div");
+      row.className = "field-row";
+      row.style.alignItems = "center";
+      const current = state.trello.listMap[list.id] || "__ignore__";
+      const sel = document.createElement("select");
+      sel.dataset.listId = list.id;
+      sel.className = "trello-list-map";
+      COLUMNS.forEach(c=>{
+        const opt = document.createElement("option");
+        opt.value = c.id; opt.textContent = c.label;
+        if(c.id===current) opt.selected = true;
+        sel.appendChild(opt);
+      });
+      const opt = document.createElement("option");
+      opt.value = "__ignore__"; opt.textContent = "Não importar esta lista";
+      if(current==="__ignore__") opt.selected = true;
+      sel.appendChild(opt);
+      row.innerHTML = `<div class="field" style="flex:1.4;"><label style="margin:0;">${escapeHtml(list.name)}</label></div>`;
+      const wrap = document.createElement("div");
+      wrap.className = "field";
+      wrap.appendChild(sel);
+      row.appendChild(wrap);
+      area.appendChild(row);
+      sel.addEventListener("change", ()=>{
+        state.trello.listMap[sel.dataset.listId] = sel.value;
+        saveState();
+        showToast("Mapeamento salvo.");
+      });
+    });
+  }
+
+  document.getElementById("trelloFetchListsBtn").addEventListener("click", async ()=>{
+    const f = readTrelloFields();
+    const statusEl = document.getElementById("trelloStatusMsg");
+    if(!f.key || !f.token || !f.boardId){
+      statusEl.textContent = "Preencha chave, token e ID do board antes de buscar as listas.";
+      statusEl.style.color = "var(--warning)";
+      return;
+    }
+    statusEl.style.color = "var(--text-dim)";
+    statusEl.textContent = "Buscando listas...";
+    try{
+      const url = `https://api.trello.com/1/boards/${f.boardId}/lists?key=${encodeURIComponent(f.key)}&token=${encodeURIComponent(f.token)}&fields=name`;
+      const resp = await fetch(url);
+      if(!resp.ok) throw new Error("HTTP "+resp.status);
+      const lists = await resp.json();
+      state.trello.cachedLists = lists;
+      state.trello.listMap = {};
+      saveState();
+      renderListMapUI(lists);
+      statusEl.textContent = `${lists.length} lista(s) encontrada(s). Por padrão nenhuma será importada — escolha a coluna só das listas que você quer sincronizar.`;
+      statusEl.style.color = "var(--success)";
+    }catch(err){
+      statusEl.style.color = "var(--danger)";
+      let explanation;
+      if(err.message.includes("403")){
+        explanation = "403 (Forbidden): chave/token recusados pelo Trello — não é CORS. Confira se a chave e o token foram gerados juntos (regenerar um sem regenerar o outro invalida o par), e se você tem acesso a esse board.";
+      }else if(err.message.includes("401")){
+        explanation = "401 (Unauthorized): chave ou token inválidos/expirados. Gere os dois de novo.";
+      }else if(err.message.includes("404")){
+        explanation = "404: ID do board incorreto ou inacessível.";
+      }else{
+        explanation = "Se o erro for de conexão (sem código HTTP), aí sim pode ser bloqueio de rede/CORS.";
+      }
+      statusEl.textContent = "Não foi possível buscar as listas. Erro: "+err.message+". "+explanation;
+    }
+  });
+
+  function saveTrelloConfig(){
+    const f = readTrelloFields();
+    state.trello.key = f.key;
+    state.trello.token = f.token;
+    state.trello.boardId = f.boardId;
+    const maps = document.querySelectorAll(".trello-list-map");
+    maps.forEach(sel=>{
+      state.trello.listMap[sel.dataset.listId] = sel.value;
+    });
+    saveState();
+  }
+
+  document.getElementById("trelloSaveBtn").addEventListener("click", ()=>{
+    saveTrelloConfig();
+    showToast("Configuração do Trello salva.");
+    closeTrelloModal();
+  });
+
+  document.getElementById("trelloSyncNowBtn").addEventListener("click", async ()=>{
+    saveTrelloConfig();
+    closeTrelloModal();
+    await syncFromTrello();
+  });
+  document.getElementById("trelloSyncBtn").addEventListener("click", syncFromTrello);
+
+  document.getElementById("trelloCleanupBtn").addEventListener("click", ()=>{
+    const count = state.cards.filter(c=>c.trelloId).length;
+    if(count===0){ showToast("Não há cartões importados do Trello para remover."); return; }
+    if(!confirm(`Isso vai excluir ${count} cartão(ões) que vieram do Trello (os criados manualmente ficam intactos). Deseja continuar?`)) return;
+    state.cards = state.cards.filter(c=>!c.trelloId);
+    saveState();
+    renderAll();
+    showToast(`${count} cartão(ões) removido(s). Ajuste o mapeamento das listas e sincronize novamente.`);
+  });
+
+  async function syncFromTrello(){
+    const t = state.trello;
+    if(!t.key || !t.token || !t.boardId){
+      showToast("Configure a integração com o Trello primeiro (⚙️ Trello).");
+      openTrelloModal();
+      return;
+    }
+    showToast("Sincronizando com o Trello...");
+    try{
+      const url = `https://api.trello.com/1/boards/${t.boardId}/cards?key=${encodeURIComponent(t.key)}&token=${encodeURIComponent(t.token)}&fields=name,desc,due,shortUrl,idList,closed&actions=commentCard&actions_limit=50&attachments=true&attachment_fields=name,url&filter=open`;
+      const resp = await fetch(url);
+      if(!resp.ok) throw new Error("HTTP "+resp.status);
+      const trelloCards = await resp.json();
+      const existingIds = new Set(state.cards.filter(c=>c.trelloId).map(c=>c.trelloId));
+      let added = 0;
+      trelloCards.forEach(tc=>{
+        if(tc.closed) return;
+        if(existingIds.has(tc.id)) return;
+        const mapped = t.listMap[tc.idList];
+        if(!mapped || mapped === "__ignore__") return; // só importa listas explicitamente mapeadas
+        const status = mapped;
+
+        const parts = [];
+        if(tc.desc) parts.push(tc.desc.trim());
+        if(Array.isArray(tc.actions) && tc.actions.length){
+          const comments = tc.actions
+            .filter(a=>a.type==="commentCard" && a.data && a.data.text)
+            .map(a=>`- ${(a.memberCreator&&a.memberCreator.fullName)||"?"}: ${a.data.text}`);
+          if(comments.length) parts.push("Comentários:\n"+comments.join("\n"));
+        }
+        if(Array.isArray(tc.attachments) && tc.attachments.length){
+          const atts = tc.attachments.map(a=>`- ${a.name}: ${a.url}`);
+          parts.push("Anexos:\n"+atts.join("\n"));
+        }
+        parts.push("Trello: "+tc.shortUrl);
+
+        state.cards.push({
+          id: uid(),
+          trelloId: tc.id,
+          trelloListId: tc.idList,
+          title: tc.name,
+          supplier:"", requester:"", qty:"",
+          tipo:"entrega", prio:"media",
+          dueDate: tc.due ? tc.due.slice(0,10) : "",
+          status,
+          notes: parts.join("\n\n"),
+          color: COLORS[0],
+          createdAt: Date.now()
+        });
+        added++;
+      });
+      state.trello.lastSync = Date.now();
+      saveState();
+      renderAll();
+      showToast(added>0 ? `${added} cartão(ões) novo(s) importado(s) do Trello.` : "Nenhum cartão novo encontrado no Trello.");
+    }catch(err){
+      showToast("Falha ao sincronizar (veja detalhes em ⚙️ Trello).");
+      const statusEl = document.getElementById("trelloStatusMsg");
+      openTrelloModal();
+      statusEl.style.color = "var(--danger)";
+      let explanation;
+      if(err.message.includes("403")){
+        explanation = "403 (Forbidden): o Trello recebeu e recusou o pedido — não é problema de rede/CORS. Causas mais comuns: token e chave não combinam (gerou uma chave nova depois do token, ou vice-versa — gere os dois de novo, nessa ordem), token sem permissão de leitura para esse board, ou o board pertence a uma Área de trabalho com restrição de acesso por API definida por um administrador.";
+      }else if(err.message.includes("401")){
+        explanation = "401 (Unauthorized): chave ou token inválidos/expirados. Gere a chave e o token novamente em trello.com/power-ups/admin e cole os dois de novo.";
+      }else if(err.message.includes("404")){
+        explanation = "404 (Não encontrado): o ID do board parece estar errado ou o board não existe/não está acessível para essa conta.";
+      }else if(err.message.includes("429")){
+        explanation = "429 (Muitas requisições): limite de chamadas à API do Trello atingido. Aguarde um pouco e tente de novo.";
+      }else{
+        explanation = "Isso costuma ser bloqueio de rede/CORS quando o erro é de conexão (\"Failed to fetch\"), sem nenhum código de status.";
+      }
+      statusEl.textContent = "Erro na sincronização: "+err.message+". "+explanation;
+    }
+  }
+
+  document.getElementById("exportBtn").addEventListener("click", ()=>{
+    const blob = new Blob([JSON.stringify(state,null,2)], {type:"application/json"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "painel_compras_backup_"+new Date().toISOString().slice(0,10)+".json";
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast("Backup exportado.");
+  });
+  document.getElementById("importBtn").addEventListener("click", ()=>{
+    document.getElementById("importFile").click();
+  });
+  document.getElementById("importFile").addEventListener("change", (e)=>{
+    const file = e.target.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev)=>{
+      try{
+        const data = JSON.parse(ev.target.result);
+        if(!data.cards || !data.pend) throw new Error("formato inválido");
+        if(!data.trello) data.trello = {key:"", token:"", boardId:"", listMap:{}, lastSync:null};
+        state = data;
+        saveState();
+        renderAll();
+        showToast("Dados importados com sucesso.");
+      }catch(err){
+        alert("Arquivo inválido: "+err.message);
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = "";
+  });
+
+  function renderAll(){
+    renderPend();
+    renderStats();
+    if(currentTab==="table") renderTable();
+    if(currentTab==="calendar") renderCalendar();
+  }
+
+  // ---------- TABELA (estilo Monday) ----------
+  const PRIO_ORDER = {urgente:0, alta:1, media:2, baixa:3};
+
+  if(!state.groupCollapsed) state.groupCollapsed = {pendentes:false, concluidos:false};
+
+  function sortCards(cards){
+    const mode = state.sortBy || "prazo_asc";
+    const byTitle = (a,b)=>(a.title||"").localeCompare(b.title||"", "pt-BR");
+    return [...cards].sort((a,b)=>{
+      if(mode==="prazo_asc" || mode==="prazo_desc"){
+        const av = a.dueDate || "", bv = b.dueDate || "";
+        if(!av && !bv) return byTitle(a,b);
+        if(!av) return 1;              // sem prazo sempre no fim
+        if(!bv) return -1;
+        if(av===bv) return (PRIO_ORDER[a.prio]??9)-(PRIO_ORDER[b.prio]??9);
+        return mode==="prazo_asc" ? av.localeCompare(bv) : bv.localeCompare(av);
+      }
+      if(mode==="prio"){
+        const d = (PRIO_ORDER[a.prio]??9)-(PRIO_ORDER[b.prio]??9);
+        if(d!==0) return d;
+        return (a.dueDate||"9999-12-31").localeCompare(b.dueDate||"9999-12-31");
+      }
+      if(mode==="titulo") return byTitle(a,b);
+      return (b.createdAt||0)-(a.createdAt||0);
+    });
+  }
+
+  function quickComplete(cardId){
+    const card = state.cards.find(c=>c.id===cardId);
+    if(!card) return;
+    card.status = "concluido";
+    card.doneAt = Date.now();
+    saveState();
+    renderAll();
+    showToast("Item concluído.");
+  }
+  function reopenCard(cardId){
+    const card = state.cards.find(c=>c.id===cardId);
+    if(!card) return;
+    card.status = "pendente";
+    delete card.doneAt;
+    saveState();
+    renderAll();
+    showToast("Item reaberto como pendente.");
+  }
+
+  function buildRow(card, isDone){
+    const sit = situacaoInfo(card);
+    const tr = document.createElement("tr");
+    if(isDone){
+      tr.className = "row-done";
+    }else{
+      tr.className = "row-prio";
+      tr.style.setProperty("--row-color", state.prioColors[card.prio] || "#5b8def");
+    }
+    tr.innerHTML = `
+      <td style="font-weight:600;cursor:pointer;" data-open="1">${isDone?'<span class="done-check">✓</span>':''}${escapeHtml(card.title)}</td>
+      <td>${escapeHtml(card.supplier)}</td>
+      <td>${escapeHtml(card.requester)}</td>
+      <td><span class="badge tipo-${card.tipo}">${card.tipo==="entrega"?"Entrega":"Retirada"}</span></td>
+      <td class="prio-cell"></td>
+      <td>${card.dueDate?fmtDate(card.dueDate):"—"}</td>
+      <td><span style="color:${sit.color};font-weight:700;font-size:12px;">${sit.label}</span></td>
+      <td class="action-cell" style="text-align:right;white-space:nowrap;"></td>
+    `;
+
+    const prioTd = tr.querySelector(".prio-cell");
+    const prioSel = document.createElement("select");
+    prioSel.style.cssText = "background:transparent;border:1px solid var(--border);border-radius:6px;padding:4px 6px;font-size:12px;color:var(--text);";
+    ["baixa","media","alta","urgente"].forEach(p=>{
+      const o = document.createElement("option");
+      o.value = p; o.textContent = labelPrio(p);
+      if(card.prio===p) o.selected = true;
+      prioSel.appendChild(o);
+    });
+    prioSel.style.borderLeft = "4px solid "+(state.prioColors[card.prio]||"#888");
+    prioSel.addEventListener("change", ()=>{
+      card.prio = prioSel.value;
+      saveState(); renderAll();
+    });
+    prioTd.appendChild(prioSel);
+
+    const actionTd = tr.querySelector(".action-cell");
+    const editBtn = document.createElement("button");
+    editBtn.className = "icon-btn";
+    editBtn.title = "Editar";
+    editBtn.textContent = "✏️";
+    editBtn.style.marginRight = "6px";
+    editBtn.addEventListener("click", e=>{ e.stopPropagation(); openModal(card.id); });
+    actionTd.appendChild(editBtn);
+
+    const btn = document.createElement("button");
+    btn.className = "ghost";
+    if(!isDone){
+      btn.style.cssText = "font-size:11px;padding:5px 10px;color:var(--success);border-color:var(--success);";
+      btn.textContent = "✓ Concluir";
+      btn.addEventListener("click", e=>{ e.stopPropagation(); quickComplete(card.id); });
+    }else{
+      btn.style.cssText = "font-size:11px;padding:5px 10px;";
+      btn.textContent = "↺ Reabrir";
+      btn.addEventListener("click", e=>{ e.stopPropagation(); reopenCard(card.id); });
+    }
+    actionTd.appendChild(btn);
+
+    tr.querySelector("[data-open]").addEventListener("click", ()=>openModal(card.id));
+    return tr;
+  }
+
+  function buildGroupTable(key, title, dotColor, cards, isDone){
+    const collapsed = !!state.groupCollapsed[key];
+    const wrap = document.createElement("div");
+    wrap.className = "group-block"+(collapsed?" collapsed":"");
+
+    const head = document.createElement("div");
+    head.className = "group-title";
+    head.innerHTML = `
+      <button class="collapse-btn" title="${collapsed?"Expandir":"Recolher"}">${collapsed?"▶":"▼"}</button>
+      <span class="grp-dot" style="background:${dotColor}"></span>
+      <span class="grp-label">${title}</span>
+      <span class="grp-count">${cards.length}</span>
+      ${collapsed?'<span class="grp-hint">recolhido</span>':""}
+    `;
+    const toggle = ()=>{
+      state.groupCollapsed[key] = !state.groupCollapsed[key];
+      saveState();
+      renderTable();
+    };
+    head.querySelector(".collapse-btn").addEventListener("click", toggle);
+    head.querySelector(".grp-label").addEventListener("click", toggle);
+    wrap.appendChild(head);
+
+    if(collapsed) return wrap;
+
+    if(cards.length===0){
+      const empty = document.createElement("div");
+      empty.className = "empty-msg";
+      empty.textContent = isDone ? "Nada concluído ainda." : "Nenhum item pendente.";
+      wrap.appendChild(empty);
+      return wrap;
+    }
+
+    const table = document.createElement("table");
+    table.className = "data-table";
+    table.innerHTML = `
+      <thead><tr>
+        <th>Material</th><th>Fornecedor</th><th>Solicitante</th><th>Tipo</th>
+        <th>Prioridade</th><th>Prazo</th><th>Situação</th><th></th>
+      </tr></thead>
+    `;
+    const tbody = document.createElement("tbody");
+    cards.forEach(c=>tbody.appendChild(buildRow(c, isDone)));
+    table.appendChild(tbody);
+    wrap.appendChild(table);
+    return wrap;
+  }
+
+  function renderTable(){
+    const filtered = getFilteredCards();
+    const pendentes = sortCards(filtered.filter(c=>c.status!=="concluido"));
+    const concluidos = sortCards(filtered.filter(c=>c.status==="concluido"));
+
+    const pendContainer = document.getElementById("groupPendentes");
+    const doneContainer = document.getElementById("groupConcluidos");
+    pendContainer.innerHTML = "";
+    doneContainer.innerHTML = "";
+    pendContainer.appendChild(buildGroupTable("pendentes", "⏳ Pendentes", "var(--accent)", pendentes, false));
+    doneContainer.appendChild(buildGroupTable("concluidos", "✅ Concluídos", "var(--success)", concluidos, true));
+  }
+
+  // ---------- CALENDÁRIO ----------
+  let calDate = new Date();
+  const MESES = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
+  const MAX_CHIPS = 3;
+
+  function isoOf(d){
+    return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+  }
+
+  document.getElementById("calPrevBtn").addEventListener("click", ()=>{ calDate = new Date(calDate.getFullYear(), calDate.getMonth()-1, 1); renderCalendar(); });
+  document.getElementById("calNextBtn").addEventListener("click", ()=>{ calDate = new Date(calDate.getFullYear(), calDate.getMonth()+1, 1); renderCalendar(); });
+  document.getElementById("calTodayBtn").addEventListener("click", ()=>{ calDate = new Date(); renderCalendar(); });
+
+  function sortDayCards(cards){
+    return [...cards].sort((a,b)=>{
+      const ad = a.status==="concluido"?1:0, bd = b.status==="concluido"?1:0;
+      if(ad!==bd) return ad-bd;
+      return (PRIO_ORDER[a.prio]??9)-(PRIO_ORDER[b.prio]??9);
+    });
+  }
+
+  function renderCalendar(){
+    const grid = document.getElementById("calGrid");
+    grid.innerHTML = "";
+    const year = calDate.getFullYear();
+    const month = calDate.getMonth();
+    document.getElementById("calLabel").textContent = MESES[month]+" "+year;
+
+    const byDay = {};
+    getFilteredCards().forEach(c=>{
+      if(!c.dueDate) return;
+      (byDay[c.dueDate] = byDay[c.dueDate] || []).push(c);
+    });
+
+    const startOffset = new Date(year, month, 1).getDay();
+    const daysInMonth = new Date(year, month+1, 0).getDate();
+    const totalCells = Math.ceil((startOffset+daysInMonth)/7)*7;
+    const todayStr = isoOf(new Date());
+
+    let mesTotal = 0, mesAtrasado = 0, mesConcluido = 0;
+
+    for(let i=0;i<totalCells;i++){
+      const dayNum = i - startOffset + 1;
+      const cellDate = new Date(year, month, dayNum);
+      const dateStr = isoOf(cellDate);
+      const inMonth = dayNum>=1 && dayNum<=daysInMonth;
+      const weekday = cellDate.getDay();
+
+      const cell = document.createElement("div");
+      cell.className = "cal-cell"
+        + (inMonth ? "" : " out")
+        + ((weekday===0||weekday===6) ? " weekend" : "")
+        + (dateStr===todayStr ? " today" : "");
+
+      const head = document.createElement("div");
+      head.className = "cal-head";
+      const num = document.createElement("div");
+      num.className = "cal-daynum";
+      num.textContent = cellDate.getDate();
+      head.appendChild(num);
+      const addBtn = document.createElement("button");
+      addBtn.className = "cal-add";
+      addBtn.title = "Novo item com prazo em "+fmtDate(dateStr);
+      addBtn.textContent = "+";
+      addBtn.addEventListener("click", ()=>openModal(null, "pendente", dateStr));
+      head.appendChild(addBtn);
+      cell.appendChild(head);
+
+      const dayCards = sortDayCards(byDay[dateStr] || []);
+      if(inMonth){
+        mesTotal += dayCards.length;
+        dayCards.forEach(c=>{
+          if(c.status==="concluido") mesConcluido++;
+          else if(isOverdue(c.dueDate)) mesAtrasado++;
+        });
+      }
+
+      dayCards.slice(0, MAX_CHIPS).forEach(c=>{
+        const chip = document.createElement("div");
+        chip.className = "cal-chip"+(c.status==="concluido"?" done":"");
+        chip.style.setProperty("--chip-color", situacaoInfo(c).color);
+        chip.textContent = c.title;
+        chip.title = c.title+" — "+situacaoInfo(c).label;
+        chip.addEventListener("click", ()=>openModal(c.id));
+        cell.appendChild(chip);
+      });
+
+      if(dayCards.length>MAX_CHIPS){
+        const more = document.createElement("div");
+        more.className = "cal-more";
+        more.textContent = "+"+(dayCards.length-MAX_CHIPS)+" no dia";
+        more.addEventListener("click", ()=>openDayModal(dateStr, dayCards));
+        cell.appendChild(more);
+      }
+
+      grid.appendChild(cell);
+    }
+
+    document.getElementById("calSummary").innerHTML = `
+      <div class="stat-pill">No mês: <b>${mesTotal}</b></div>
+      <div class="stat-pill" style="${mesAtrasado?"color:var(--danger)":""}">Atrasados: <b>${mesAtrasado}</b></div>
+      <div class="stat-pill">Concluídos: <b>${mesConcluido}</b></div>
+    `;
+  }
+
+  // ---------- DETALHE DO DIA ----------
+  const dayOverlay = document.getElementById("dayOverlay");
+  function openDayModal(dateStr, cards){
+    document.getElementById("dayModalTitle").textContent = fmtDate(dateStr);
+    const body = document.getElementById("dayModalBody");
+    body.innerHTML = "";
+    cards.forEach(c=>{
+      const sit = situacaoInfo(c);
+      const item = document.createElement("div");
+      item.className = "day-item";
+      item.style.setProperty("--chip-color", sit.color);
+      item.innerHTML = `
+        <span class="di-title" style="${c.status==="concluido"?"text-decoration:line-through;opacity:.6;":""}">${escapeHtml(c.title)}</span>
+        <span class="badge prio-${c.prio}">${labelPrio(c.prio)}</span>
+        <span class="di-sit" style="color:${sit.color};">${sit.label}</span>
+      `;
+      item.addEventListener("click", ()=>{
+        dayOverlay.classList.remove("open");
+        openModal(c.id);
+      });
+      body.appendChild(item);
+    });
+    dayOverlay.classList.add("open");
+  }
+  document.getElementById("dayModalClose").addEventListener("click", ()=>dayOverlay.classList.remove("open"));
+  dayOverlay.addEventListener("click", e=>{ if(e.target===dayOverlay) dayOverlay.classList.remove("open"); });
+
+  renderAll();
+})();
+</script>
+</body>
+</html>
